@@ -1,0 +1,5 @@
+{
+  "name": "Prompt Enhancer",
+  "description": "An application that uses a two-step Gemini process to evaluate and then refine a user's initial prompt, resulting in a more effective and well-structured prompt.",
+  "requestFramePermissions": []
+}
