@@ -214,7 +214,7 @@ const App: React.FC = () => {
                     <button
                         onClick={handleEnhanceClick}
                         disabled={isLoading || !rawPrompt}
-                        className="flex items-center justify-center space-x-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg shadow-cyan-900/50"
+                        className="flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-400 to-purple-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg shadow-purple-500/50 hover:shadow-xl hover:shadow-purple-600/50"
                     >
                         <SparklesIcon className="w-5 h-5"/>
                         <span>{isLoading ? 'Enhancing...' : 'Modify Prompt'}</span>
