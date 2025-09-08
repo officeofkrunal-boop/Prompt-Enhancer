@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { HistoryItem } from '../hooks/useAuth';
-import { CopyIcon, XMarkIcon } from './Icons';
+import { CopyIcon, XMarkIcon, TrashIcon } from './Icons';
 
 interface HistorySidebarProps {
   history: HistoryItem[];
   onUseHistoryItem: (item: HistoryItem) => void;
   isOpen: boolean;
   onClose: () => void;
+  onClearHistory: () => void;
 }
 
 const HistoryListItem: React.FC<{ item: HistoryItem, onUse: () => void }> = ({ item, onUse }) => {
@@ -33,7 +34,7 @@ const HistoryListItem: React.FC<{ item: HistoryItem, onUse: () => void }> = ({ i
                 aria-expanded={isExpanded}
             >
                 <div>
-                    <p className="font-semibold text-cyan-400 truncate max-w-xs">
+                    <p className="font-semibold text-cyan-400 truncate max-w-xs sm:max-w-sm">
                         {item.rawPrompt}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
@@ -53,7 +54,7 @@ const HistoryListItem: React.FC<{ item: HistoryItem, onUse: () => void }> = ({ i
                                 {isRawCopied ? <span className="text-sm text-green-400">Copied!</span> : <CopyIcon className="w-4 h-4" />}
                             </button>
                         </div>
-                        <p className="text-gray-300 bg-gray-900/50 p-2 rounded text-sm whitespace-pre-wrap">{item.rawPrompt}</p>
+                        <p className="text-gray-300 bg-gray-900/50 p-2 rounded text-sm whitespace-pre-wrap break-words">{item.rawPrompt}</p>
                     </div>
                      <div>
                         <div className="flex justify-between items-center mb-1">
@@ -62,7 +63,7 @@ const HistoryListItem: React.FC<{ item: HistoryItem, onUse: () => void }> = ({ i
                                 {isModifiedCopied ? <span className="text-sm text-green-400">Copied!</span> : <CopyIcon className="w-4 h-4" />}
                             </button>
                         </div>
-                        <p className="text-gray-300 bg-gray-900/50 p-2 rounded text-sm whitespace-pre-wrap">{item.modifiedPrompt}</p>
+                        <p className="text-gray-300 bg-gray-900/50 p-2 rounded text-sm whitespace-pre-wrap break-words">{item.modifiedPrompt}</p>
                     </div>
                     <div className="text-right">
                          <button
@@ -78,7 +79,7 @@ const HistoryListItem: React.FC<{ item: HistoryItem, onUse: () => void }> = ({ i
     );
 }
 
-const HistorySidebar: React.FC<HistorySidebarProps> = ({ history, onUseHistoryItem, isOpen, onClose }) => {
+const HistorySidebar: React.FC<HistorySidebarProps> = ({ history, onUseHistoryItem, isOpen, onClose, onClearHistory }) => {
   return (
     <>
       {/* Backdrop */}
@@ -98,9 +99,21 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ history, onUseHistoryIt
         <div className="flex flex-col h-full">
             <header className="flex items-center justify-between p-4 border-b border-gray-700">
                 <h3 id="history-heading" className="text-xl font-bold text-gray-200">Prompt History</h3>
-                <button onClick={onClose} className="p-1 text-gray-400 hover:text-white rounded-full hover:bg-gray-700" aria-label="Close history">
-                    <XMarkIcon />
-                </button>
+                 <div className="flex items-center space-x-2">
+                    {history.length > 0 && (
+                        <button 
+                            onClick={onClearHistory} 
+                            className="p-1 text-gray-400 hover:text-red-400 rounded-full hover:bg-gray-700 transition-colors" 
+                            aria-label="Clear history"
+                            title="Clear all history"
+                        >
+                            <TrashIcon className="w-5 h-5"/>
+                        </button>
+                    )}
+                    <button onClick={onClose} className="p-1 text-gray-400 hover:text-white rounded-full hover:bg-gray-700" aria-label="Close history">
+                        <XMarkIcon />
+                    </button>
+                </div>
             </header>
             
             <div className="flex-grow p-4 overflow-y-auto">

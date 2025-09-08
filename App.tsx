@@ -1,9 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { enhancePrompt } from './services/geminiService';
-import { CopyIcon, DownloadIcon, SparklesIcon, UserCircleIcon, HamburgerIcon, XMarkIcon } from './components/Icons';
-import AuthModal from './components/AuthModal';
+import { CopyIcon, DownloadIcon, SparklesIcon, HamburgerIcon, XMarkIcon } from './components/Icons';
 import HistorySidebar from './components/HistorySidebar';
-import { useAuth, HistoryItem } from './hooks/useAuth';
+import { useHistory, HistoryItem } from './hooks/useAuth';
 
 interface PromptBoxProps {
     title: string;
@@ -49,13 +48,12 @@ const PromptBox: React.FC<PromptBoxProps> = ({ title, value, onChange, placehold
 
 
 const App: React.FC = () => {
-    const { currentUser, login, signup, logout, addHistory, promptHistory } = useAuth();
+    const { promptHistory, addHistory, clearHistory } = useHistory();
     const [rawPrompt, setRawPrompt] = useState<string>('');
     const [modifiedPrompt, setModifiedPrompt] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isCopied, setIsCopied] = useState<boolean>(false);
-    const [isAuthModalOpen, setAuthModalOpen] = useState<boolean>(false);
     const [isHistoryVisible, setIsHistoryVisible] = useState<boolean>(false);
 
     const handleEnhanceClick = useCallback(async () => {
@@ -65,16 +63,15 @@ const App: React.FC = () => {
         try {
             const result = await enhancePrompt(rawPrompt);
             setModifiedPrompt(result);
-            if (currentUser) {
-                const newHistoryItem: Omit<HistoryItem, 'id' | 'timestamp'> = { rawPrompt, modifiedPrompt: result };
-                addHistory(newHistoryItem);
-            }
-        } catch (err: any) {
+            const newHistoryItem: Omit<HistoryItem, 'id' | 'timestamp'> = { rawPrompt, modifiedPrompt: result };
+            addHistory(newHistoryItem);
+        } catch (err: any)
+{
             setError(err.message || 'An unexpected error occurred.');
         } finally {
             setIsLoading(false);
         }
-    }, [rawPrompt, currentUser, addHistory]);
+    }, [rawPrompt, addHistory]);
 
     const handleCopy = useCallback(() => {
         if (!modifiedPrompt) return;
@@ -102,53 +99,37 @@ const App: React.FC = () => {
         setIsHistoryVisible(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
+    
+    const handleClearHistory = useCallback(() => {
+        if (window.confirm('Are you sure you want to clear all prompt history? This cannot be undone.')) {
+            clearHistory();
+        }
+    }, [clearHistory]);
 
     return (
         <>
             <div className="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 font-sans">
                 <header className="flex justify-between items-center mb-8">
-                    <div className="text-center">
+                    <div className="flex-1">
                         <div className="inline-flex items-center space-x-3">
                             <SparklesIcon className="w-10 h-10 text-cyan-400"/>
                             <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
                                 Prompt Enhancer
                             </h1>
                         </div>
-                        <p className="mt-2 text-lg text-gray-400 text-left">
+                        <p className="mt-2 text-lg text-gray-400">
                             Refine your ideas into powerful, effective prompts with AI-driven analysis.
                         </p>
                     </div>
                     <div>
-                        {currentUser ? (
-                            <div className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-2">
-                                    <UserCircleIcon className="text-cyan-400" />
-                                    <span className="text-gray-300 hidden sm:inline">{currentUser.email}</span>
-                                </div>
-                                <button
-                                    onClick={logout}
-                                    className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300"
-                                >
-                                    Logout
-                                </button>
-                                <button
-                                    onClick={() => setIsHistoryVisible(true)}
-                                    className="p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-400 hover:text-white"
-                                    title="Open Prompt History"
-                                    aria-label="Open Prompt History"
-                                >
-                                    <HamburgerIcon />
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => setAuthModalOpen(true)}
-                                className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 flex items-center space-x-2"
-                            >
-                                <UserCircleIcon />
-                                <span>Login / Sign Up</span>
-                            </button>
-                        )}
+                        <button
+                            onClick={() => setIsHistoryVisible(true)}
+                            className="p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-400 hover:text-white"
+                            title="Open Prompt History"
+                            aria-label="Open Prompt History"
+                        >
+                            <HamburgerIcon />
+                        </button>
                     </div>
                 </header>
                 
@@ -214,28 +195,21 @@ const App: React.FC = () => {
                     <button
                         onClick={handleEnhanceClick}
                         disabled={isLoading || !rawPrompt}
-                        className="flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-400 to-purple-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg shadow-purple-500/50 hover:shadow-xl hover:shadow-purple-600/50"
+                        className="flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-400 to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg shadow-purple-500/50 hover:shadow-xl hover:shadow-purple-600/50"
                     >
                         <SparklesIcon className="w-5 h-5"/>
                         <span>{isLoading ? 'Enhancing...' : 'Modify Prompt'}</span>
                     </button>
                 </footer>
             </div>
-            {isAuthModalOpen && (
-                <AuthModal 
-                    onClose={() => setAuthModalOpen(false)} 
-                    onLogin={login}
-                    onSignup={signup}
-                />
-            )}
-            {currentUser && (
-                <HistorySidebar 
-                    history={promptHistory} 
-                    onUseHistoryItem={handleUseHistoryItem}
-                    isOpen={isHistoryVisible}
-                    onClose={() => setIsHistoryVisible(false)}
-                />
-            )}
+            
+            <HistorySidebar 
+                history={promptHistory} 
+                onUseHistoryItem={handleUseHistoryItem}
+                isOpen={isHistoryVisible}
+                onClose={() => setIsHistoryVisible(false)}
+                onClearHistory={handleClearHistory}
+            />
         </>
     );
 };
